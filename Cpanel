@@ -1,0 +1,94 @@
+#!/bin/bash
+inputQst=$(zenity --list --title="Cpanel" --text="Chose option from the list below" --column="0" "Change Mail server domain " "Change Calendar server domain " "Add user" "Delete user" "Mail filters"  --width=600 --height=200 --hide-header)
+
+if
+       	[ "$inputQst" == "Change Mail server domain " ]; 
+then
+inputStr=$(zenity --entry --title="Cpanel" --text="Enter Domain ")
+echo "cat > /etc/postfix/vmail_domains << "EOF"
+$inputStr                 OK
+EOF" | sudo -s
+sudo systemctl restart postfix
+sudo systemctl restart dovecot
+fi 
+if 
+        [ "$inputQst" == "Change Calendar server domain " ];
+    then
+inputStr=$(zenity --entry --title="Cpanel" --text="Enter domain/IP addres ")
+
+echo "[server]
+max_connections = 100
+max_content_length = 100000000
+timeout = 40
+hosts = $inputStr:5232, [::]:5232
+
+
+[auth]
+type = htpasswd
+htpasswd_filename = ~/.config/radicale/users
+htpasswd_encryption = plain
+
+[storage]
+filesystem_folder = ~/.config/radicale/collections
+
+[rights]
+type = owner_write" >~/.config/radicale/config
+sudo systemctl restart radicale
+fi
+
+if
+	[ "$inputQst" == "Add user" ];
+then	
+user=$(zenity --entry --title="Cpanel" --text="Enter username to add:")
+pass=$(zenity --password --title="Cpanel" --text="Enter password for user:")
+domain=$(cut -d' ' -f1  /etc/postfix/vmail_domains)
+
+echo "cat >> /etc/postfix/vmail_mailbox << "EOF"
+"$user@$domain $domain/$user/ "
+EOF" | sudo -s
+
+sudo doveadm pw -s sha1 -p $pass > hash.txt
+
+sed 's/{SHA1}//g' hash.txt > Hash.txt
+Hash=$(cat Hash.txt)
+
+echo "$user:$pass" >> ~/.config/radicale/users
+echo "cat >> /etc/dovecot/passwd << "EOF"
+"$user@$domain:$Hash"
+EOF" | sudo -s
+sudo postmap /etc/postfix/vmail_mailbox
+sudo systemctl restart postfix.service
+sudo systemctl restart dovecot.service
+fi
+
+if
+       	[ "$inputQst" == "Delete user" ];
+then
+delete=$(zenity --entry --title="Cpanel" --text="Enter user to delete")
+sed -i "/^$delete\b/d" ~/.config/radicale/users
+sed -i "/^$delete\b/d" /etc/postfix/vmail_mailbox
+sed -i "/^$delete\b/d" /etc/dovecot/passwd
+
+
+  
+fi
+if
+[ "$inputQst" == "Mail filters" ];
+then
+    inputfilter=$(zenity --list --title="Filter" --text="Chose filter from the list below" --column="0" "Block by subject " --width=600 --height=200 --hide-header)
+#fi
+#    if
+        ["$inputfilter" == "Block by subject "]
+subject=$(zenity --entry --title="Filter" --text="Enter subject")
+#then
+    echo "cat > /etc/postfix/header_checks  << "EOF"
+"/^Subject: .*$subject*/ HOLD"
+
+EOF" | sudo -s
+sudo systemctl restart postfix.service
+sudo systemctl restart dovecot.service
+    fi
+
+
+exit 0
+
