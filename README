@@ -17,7 +17,7 @@ Installation
 
 shell
 
-$ sudo  ./install.sh
+$ sudo  bash install.sh
 
     Follow the on-screen instructions to complete the installation process.
 
@@ -27,7 +27,7 @@ $ sudo  ./install.sh
 
 shell
 
-$ sudo ./Cpanel
+$ sudo bash Cpanel
 
  
 
