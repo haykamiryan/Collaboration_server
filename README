@@ -1,0 +1,35 @@
+Welcome to the readme file!
+ 
+Follow these steps to successfully install and run the software on your machine.
+Requirements
+
+Before starting the installation process, make sure your system meets the following requirements:
+
+    Operating System: Any Linux system
+    Storage: 500 MB of free disk space
+
+Installation
+
+
+    Open the terminal  and navigate to the directory where the installation file is located.
+
+    Run the following command as root user to start the installation process:
+
+shell
+
+$ sudo  ./install.sh
+
+    Follow the on-screen instructions to complete the installation process.
+
+    After installation you can see Cpanel file.
+
+    Run Cpanel as root user to start configuration of mail, calendar server:
+
+shell
+
+$ sudo ./Cpanel
+
+ 
+
+    Created by Hayk
+    Contact: hayk.amiryan@realschool.am
